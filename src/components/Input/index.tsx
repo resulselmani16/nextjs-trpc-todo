@@ -1,71 +1,53 @@
+import { FieldError, UseFormRegister } from "react-hook-form";
 import classNames from "classnames";
-import {
-  FieldError,
-  FieldErrorsImpl,
-  FieldValues,
-  Merge,
-  UseFormRegister,
-} from "react-hook-form";
 
-interface InputProps {
+export interface InputProps {
+  id?: string;
+  type?: "text" | "textarea" | "password" | "email";
   placeholder?: string;
+  register?: UseFormRegister<any>;
+  error?: FieldError;
   name: string;
-  type?: "text" | "textarea";
   className?: string;
-  required?: boolean;
-  error?: Merge<FieldError, FieldErrorsImpl<{ message: string }>>;
-  register?: UseFormRegister<FieldValues>;
   value?: string;
-  disabled?: boolean;
 }
 
 const Input = ({
-  name,
-  placeholder = name,
+  id,
   type = "text",
-  className,
-  required = false,
+  placeholder,
   register,
   error,
-  disabled = false,
+  name,
+  className,
   value,
 }: InputProps) => {
-  const addRegister = name ? { ...register?.(name) } : {};
+  const inputClasses = classNames(
+    className,
+    error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+  );
+
+  if (type === "textarea") {
+    return (
+      <textarea
+        id={id}
+        placeholder={placeholder}
+        {...register?.(name)}
+        className={inputClasses}
+        defaultValue={value}
+      />
+    );
+  }
+
   return (
-    <>
-      {type == "textarea" ? (
-        <textarea
-          className={classNames(
-            "border focus:border-blue-600 rounded-md pl-4 py-2 focus:outline-none flex align-items-center disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:text-gray-300 text-black bg-white dark:bg-black border-gray-400",
-            { "border-red-500": error },
-            className
-          )}
-          name={name}
-          placeholder={placeholder}
-          id={name}
-          {...addRegister}
-        />
-      ) : (
-        <input
-          id={name}
-          name={name}
-          type={type}
-          placeholder={placeholder}
-          disabled={disabled}
-          value={value}
-          {...addRegister}
-          className={classNames(
-            "border focus:border-blue-600 rounded-md pl-4 py-2 focus:outline-none flex align-items-center disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:text-gray-300 text-black bg-white dark:bg-black border-gray-400",
-            { "border-red-500": error },
-            className
-          )}
-          required={required}
-        />
-      )}
-      {typeof error?.message === "string" && (
-        <p className="text-red-600 text-sm">{error.message}</p>
-      )}
-    </>
+    <input
+      id={id}
+      type={type}
+      placeholder={placeholder}
+      {...register?.(name)}
+      className={inputClasses}
+      defaultValue={value}
+    />
   );
 };
 

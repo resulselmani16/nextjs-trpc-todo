@@ -1,51 +1,39 @@
-import classNames from "classnames";
 import React from "react";
-interface ButtonProps {
-  type?: "button" | "submit" | "reset";
+import classNames from "classnames";
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "danger";
   text?: string;
-  onClick?: () => void;
-  className?: string;
-  disabled?: boolean;
-  variant?: "primary" | "secondary" | "iconButton" | "confirm" | "cancel";
   icon?: React.ReactNode;
 }
+
 const Button = ({
-  text,
   variant = "primary",
-  type = "button",
-  onClick,
   className,
-  disabled = false,
+  text,
+  children,
   icon,
+  ...props
 }: ButtonProps) => {
-  const variantStyles = {
-    primary:
-      "text-white bg-black hover:bg-white hover:text-black p-2 rounded-md border hover:border-black",
-    secondary:
-      "text-black bg-white hover:bg-black p-2 rounded-md border hover:text-white hover:border-white",
-    iconButton: "mx-2 hover:scale-110 transition-transform duration-100",
-    confirm:
-      "text-white bg-black p-2 rounded-md border hover:bg-green-500 hover:text-white",
-    cancel:
-      "text-black bg-white p-2 rounded-md border hover:bg-red-500 hover:text-white",
-  };
+  const buttonClasses = classNames(
+    className,
+    "flex items-center gap-2 justify-around mx-2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors",
+    {
+      "text-white bg-primary-600 hover:bg-primary-700 focus:ring-primary-500":
+        variant === "primary",
+      "text-primary-700 bg-primary-100 hover:bg-primary-200 focus:ring-primary-500":
+        variant === "secondary",
+      "text-white bg-red-600 hover:bg-red-700 focus:ring-red-500":
+        variant === "danger",
+    }
+  );
 
   return (
-    <button
-      type={type}
-      disabled={disabled}
-      className={classNames(
-        "inline-flex disabled:cursor-not-allowed items-center gap-2 rounded-md transition-colors",
-        className,
-        variantStyles[variant],
-        {
-          "!p-0": variant == "iconButton",
-        }
-      )}
-      onClick={onClick}
-    >
-      {icon}
-      {text}
+    <button className={buttonClasses} {...props}>
+      {icon && <span>{icon}</span>}
+      {text && <span>{text}</span>}
+      {children}
     </button>
   );
 };

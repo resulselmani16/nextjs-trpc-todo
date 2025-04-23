@@ -1,5 +1,9 @@
 import React from "react";
-import { MdOutlineCheckBoxOutlineBlank, MdDeleteOutline } from "react-icons/md";
+import {
+  MdOutlineCheckBoxOutlineBlank,
+  MdDeleteOutline,
+  MdTimelapse,
+} from "react-icons/md";
 import { IoMdCheckboxOutline } from "react-icons/io";
 import Button from "../Button";
 
@@ -25,21 +29,22 @@ const TaskCard = ({
       </div>
       <div className="flex items-center">
         <Button
-          className="h-6"
           onClick={onCheckClick}
-          variant="iconButton"
+          variant="primary"
+          text={completed ? "Completed" : "In Progress"}
           icon={
             completed ? (
               <IoMdCheckboxOutline className="h-6 w-6" />
             ) : (
-              <MdOutlineCheckBoxOutlineBlank className="h-6 w-6" />
+              <MdTimelapse className="h-6 w-6" />
             )
           }
         />
         <Button
           onClick={onDeleteClick}
           icon={<MdDeleteOutline className="h-6 w-6" />}
-          variant="iconButton"
+          variant="danger"
+          text="Delete"
         />
       </div>
     </div>

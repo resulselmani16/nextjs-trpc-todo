@@ -15,17 +15,29 @@ export const taskRouter = router({
       z.object({
         title: z.string().nonempty(),
         description: z.string().nonempty(),
+        assignedTo: z.string().nonempty(),
       })
     )
     .mutation(async ({ input }) => {
-      return await prisma.task.create({ data: input });
+      return await prisma.task.create({
+        data: {
+          title: input.title,
+          description: input.description,
+          assignedTo: { connect: { id: input.assignedTo } },
+        },
+      });
     }),
   update: publicProcedure
-    .input(z.object({ id: z.string().nonempty(), completed: z.boolean() }))
+    .input(
+      z.object({
+        id: z.string().nonempty(),
+        status: z.enum(["PROGRESS", "COMPLETED", "ASSIGNED"]),
+      })
+    )
     .mutation(async ({ input }) => {
       return await prisma.task.update({
         where: { id: input.id },
-        data: { completed: input.completed },
+        data: { status: input.status },
       });
     }),
   delete: publicProcedure.input(z.string()).mutation(async ({ input }) => {

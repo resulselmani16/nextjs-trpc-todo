@@ -1,7 +1,8 @@
-import { TaskRouter } from "@/server";
+import { AppRouter } from "@/server/routers/_app";
 import { httpLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
-export const trpc = createTRPCNext<TaskRouter>({
+
+export const trpc = createTRPCNext<AppRouter>({
   config(opts) {
     const isBrowser = typeof window !== "undefined";
     const url = isBrowser
