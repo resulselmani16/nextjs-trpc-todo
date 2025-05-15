@@ -33,12 +33,11 @@ const TaskForm = () => {
   const onSubmit = async (data: ITask) => {
     setIsLoading(true);
     setError(undefined);
-
     try {
       createTask({
         title: data.title,
         description: data.description || "",
-        assignedTo: data.assignedTo || "",
+        userId: data.assignedTo || "",
       });
       await addTask(data.title, data.description || "", data.assignedTo);
       toast.success("Task added successfully!");

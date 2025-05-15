@@ -1,27 +1,38 @@
 import { AuthRoute } from "@/components/AuthRoute";
-import { useAuthContext } from "@/context/AuthContext";
-import { useUserRole } from "@/hooks/useUserRole";
-import Link from "next/link";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useInitMutations } from "@/hooks/useInitMutations";
-import { useTaskStore } from "@/store/taskStore";
 import TaskCard from "@/components/TaskCard";
-import { useEffect } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuthContext } from "@/context/AuthContext";
+import { useInitMutations } from "@/hooks/useInitMutations";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useTaskStore } from "@/store/taskStore";
+import { ITask } from "@/types/task/types";
+import { trpc } from "@/utils/trpc";
+import Link from "next/link";
 
 export default function Home() {
   const { user, logout } = useAuthContext();
   const { isAdmin, loading: roleLoading } = useUserRole();
   useInitMutations();
+
   const tasks = useTaskStore((state) => state.tasks);
-  const fetchTasks = useTaskStore((state) => state.fetchTasks);
   const updateTask = useTaskStore((state) => state.updateTask);
   const deleteTask = useTaskStore((state) => state.deleteTask);
 
-  useEffect(() => {
-    if (user) {
-      fetchTasks();
-    }
-  }, [user, fetchTasks]);
+  const { mutate: updateTaskMutation } = trpc.task.update.useMutation();
+  const { mutate: deleteTaskMutation } = trpc.task.delete.useMutation();
+
+  const handleCheckClick = async (task: ITask) => {
+    if (!task.id) return;
+    const newStatus = task.status === "COMPLETED" ? "PROGRESS" : "COMPLETED";
+    updateTaskMutation({ id: task.id, status: newStatus });
+    await updateTask(task.id, { status: newStatus });
+  };
+
+  const handleDeleteClick = async (task: ITask) => {
+    if (!task.id) return;
+    deleteTaskMutation({ id: task.id });
+    await deleteTask(task.id);
+  };
 
   const handleLogout = async () => {
     try {
@@ -39,7 +50,7 @@ export default function Home() {
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <h1 className="text-xl font-bold text-primary-600 dark:text-primary-400">
-                  Todo App
+                  Dodo
                 </h1>
               </div>
             </div>
@@ -57,113 +68,69 @@ export default function Home() {
                     Logout
                   </button>
                 </div>
-              ) : (
-                <div className="space-x-4">
-                  <Link
-                    href="/login"
-                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-primary-600 dark:text-primary-400 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/signup"
-                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {user ? (
           <AuthRoute>
-            <div className="px-4 py-6 sm:px-0">
-              <div className="border-4 border-dashed border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Your Tasks
-                  </h2>
-                  {isAdmin && (
-                    <Link
-                      href="/task/add"
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-                    >
-                      Add Task
-                    </Link>
-                  )}
-                </div>
-
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Your Tasks
+                </h2>
                 {isAdmin && (
-                  <div className="mt-4 p-4 bg-primary-50 dark:bg-gray-800 rounded-md border border-primary-200 dark:border-gray-700">
-                    <h3 className="text-lg font-medium text-primary-800 dark:text-primary-400">
-                      Admin Panel
-                    </h3>
-                    <p className="text-sm text-primary-600 dark:text-primary-300">
-                      As an admin, you can assign tasks to users and manage the
-                      application.
-                    </p>
-                  </div>
+                  <Link
+                    href="/task/add"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                  >
+                    Add Task
+                  </Link>
                 )}
+              </div>
 
-                <div className="mt-6 space-y-4">
-                  {tasks.length === 0 ? (
-                    <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                      No tasks found. Create your first task!
-                    </p>
-                  ) : (
-                    tasks.map((task) => (
+              <div className="mt-6 space-y-4">
+                {tasks.length === 0 ? (
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                    No tasks found. {isAdmin && "Create your first task!"}
+                  </p>
+                ) : (
+                  tasks.map((task) => {
+                    if (!task.id) return null;
+                    return (
                       <TaskCard
                         key={task.id}
+                        id={task.id}
                         title={task.title}
                         description={task.description || ""}
                         completed={task.status === "COMPLETED"}
-                        onCheckClick={() => {
-                          updateTask(task.id as string, {
-                            status:
-                              task.status === "COMPLETED"
-                                ? "PROGRESS"
-                                : "COMPLETED",
-                          });
-                          fetchTasks();
-                        }}
-                        onDeleteClick={() => {
-                          // TODO: Implement task deletion
-                          deleteTask(task.id as string);
-                          fetchTasks();
-                        }}
+                        onCheckClick={() => handleCheckClick(task)}
+                        onDeleteClick={() => handleDeleteClick(task)}
+                        showDelete={isAdmin}
                       />
-                    ))
-                  )}
-                </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </AuthRoute>
         ) : (
           <div className="text-center py-12">
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white sm:text-4xl">
-              Welcome to Todo App
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Welcome to Dodo
             </h2>
-            <p className="mt-4 text-lg text-gray-500 dark:text-gray-400">
-              Please sign in or create an account to manage your tasks.
+            <p className="text-gray-500 dark:text-gray-400 mb-8">
+              Please log in to manage your tasks.
             </p>
-            <div className="mt-6 space-x-4">
-              <Link
-                href="/login"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-              >
-                Login
-              </Link>
-              <Link
-                href="/signup"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-primary-600 dark:text-primary-400 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-              >
-                Sign Up
-              </Link>
-            </div>
+            <Link
+              href="/login"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+            >
+              Log In
+            </Link>
           </div>
         )}
       </main>

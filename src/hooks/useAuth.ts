@@ -14,7 +14,16 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Force token refresh when auth state changes
+        try {
+          await user.getIdToken(true);
+          console.log("Token refreshed for user:", user.uid);
+        } catch (error) {
+          console.error("Error refreshing token:", error);
+        }
+      }
       setUser(user);
       setLoading(false);
     });
@@ -29,6 +38,8 @@ export function useAuth() {
         email,
         password
       );
+      // Force token refresh after sign in
+      await userCredential.user.getIdToken(true);
       return userCredential.user;
     } catch (error) {
       throw error;
@@ -38,6 +49,8 @@ export function useAuth() {
   const signInWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
+      // Force token refresh after Google sign in
+      await result.user.getIdToken(true);
       return result.user;
     } catch (error) {
       throw error;
@@ -51,6 +64,8 @@ export function useAuth() {
         email,
         password
       );
+      // Force token refresh after sign up
+      await userCredential.user.getIdToken(true);
       return userCredential.user;
     } catch (error) {
       throw error;
