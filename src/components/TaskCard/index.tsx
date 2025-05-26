@@ -21,6 +21,14 @@ interface TaskCardProps {
   onCheckClick: () => void;
   onDeleteClick: () => void;
   showDelete?: boolean;
+  assignedTo?: {
+    id: string;
+    name: string | null;
+    email: string;
+    role: "ADMIN" | "USER";
+    createdAt: Date;
+    updatedAt: Date;
+  };
 }
 
 const TaskCard = ({
@@ -31,13 +39,14 @@ const TaskCard = ({
   onCheckClick,
   onDeleteClick,
   showDelete = false,
+  assignedTo,
 }: TaskCardProps) => {
   useEffect(() => {
     trackTaskPresence(id);
 
     const unsubscribe = subscribeToTaskUpdates(id, (data) => {
       if (data) {
-        console.log("Real-time update:", data);
+        // Handle real-time updates silently
       }
     });
 
@@ -59,6 +68,11 @@ const TaskCard = ({
         <div>
           <h2 className="font-bold text-xl">{title}</h2>
           <p className="italic">{description}</p>
+          {assignedTo && (
+            <p className="text-sm text-gray-400 mt-1">
+              Assigned to: {assignedTo.name} - {assignedTo.email}
+            </p>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           <Button

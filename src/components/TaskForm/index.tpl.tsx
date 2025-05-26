@@ -26,7 +26,6 @@ const TaskFormTpl = ({
   users,
   isAdmin,
 }: TaskFormProps) => {
-  console.log(users);
   return (
     <div className="max-w-1/2 w-full md:w-1/2 mx-auto px-4 py-8">
       <form

@@ -12,6 +12,7 @@ import { auth, googleProvider } from "@/lib/firebase/config";
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -80,6 +81,15 @@ export function useAuth() {
     }
   };
 
+  const refreshToken = async (user: User) => {
+    try {
+      const token = await user.getIdToken(true);
+      setToken(token);
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+    }
+  };
+
   return {
     user,
     loading,
@@ -87,5 +97,6 @@ export function useAuth() {
     signInWithGoogle,
     signUp,
     logout,
+    refreshToken,
   };
 }

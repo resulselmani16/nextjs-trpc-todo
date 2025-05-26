@@ -8,10 +8,12 @@ import { useTaskStore } from "@/store/taskStore";
 import { ITask } from "@/types/task/types";
 import { trpc } from "@/utils/trpc";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { user, logout } = useAuthContext();
   const { isAdmin, loading: roleLoading } = useUserRole();
+  const [isLoading, setIsLoading] = useState(true);
   useInitMutations();
 
   const tasks = useTaskStore((state) => state.tasks);
@@ -20,6 +22,15 @@ export default function Home() {
 
   const { mutate: updateTaskMutation } = trpc.task.update.useMutation();
   const { mutate: deleteTaskMutation } = trpc.task.delete.useMutation();
+
+  useEffect(() => {
+    // Set loading to false after a short delay to prevent flash
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCheckClick = async (task: ITask) => {
     if (!task.id) return;
@@ -41,6 +52,14 @@ export default function Home() {
       console.error("Error logging out:", error);
     }
   };
+
+  if (isLoading || roleLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
@@ -110,6 +129,7 @@ export default function Home() {
                         onCheckClick={() => handleCheckClick(task)}
                         onDeleteClick={() => handleDeleteClick(task)}
                         showDelete={isAdmin}
+                        assignedTo={task.assignedTo}
                       />
                     );
                   })

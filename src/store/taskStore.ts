@@ -1,6 +1,7 @@
 import { ITask } from "@/types/task/types";
 import { create } from "zustand";
 import { subscribeToTaskUpdates } from "@/lib/firebase/realtime";
+import { v4 as uuidv4 } from "uuid";
 
 interface TaskStore {
   tasks: ITask[];
@@ -8,7 +9,7 @@ interface TaskStore {
   addTask: (
     title: string,
     description: string,
-    assignedTo?: string
+    assignedTo: string
   ) => Promise<void>;
   updateTask: (id: string, updates: Partial<ITask>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -21,37 +22,29 @@ interface TaskStore {
 export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
   mutationsInitialized: false,
-  addTask: async (title: string, description: string, assignedTo?: string) => {
-    try {
-      // The actual mutation will be handled by the component
-      console.log("Adding task:", { title, description, assignedTo });
-    } catch (error) {
-      throw error;
-    }
+  addTask: async (title: string, description: string, assignedTo: string) => {
+    const newTask: ITask = {
+      id: uuidv4(),
+      title,
+      description,
+      status: "PROGRESS",
+      userId: assignedTo,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    set((state) => ({ tasks: [...state.tasks, newTask] }));
   },
   updateTask: async (id: string, updates: Partial<ITask>) => {
-    try {
-      // The actual mutation will be handled by the component
-      console.log("Updating task:", { id, updates });
-      set((state) => ({
-        tasks: state.tasks.map((task) =>
-          task.id === id ? { ...task, ...updates } : task
-        ),
-      }));
-    } catch (error) {
-      throw error;
-    }
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === id ? { ...task, ...updates, updatedAt: new Date() } : task
+      ),
+    }));
   },
   deleteTask: async (id: string) => {
-    try {
-      // The actual mutation will be handled by the component
-      console.log("Deleting task:", { id });
-      set((state) => ({
-        tasks: state.tasks.filter((task) => task.id !== id),
-      }));
-    } catch (error) {
-      throw error;
-    }
+    set((state) => ({
+      tasks: state.tasks.filter((task) => task.id !== id),
+    }));
   },
   setTasks: (tasks: ITask[]) => set({ tasks }),
   initializeMutations: () => {

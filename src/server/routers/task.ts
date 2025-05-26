@@ -12,7 +12,7 @@ export const taskRouter = createTRPCRouter({
         message: "You must be logged in to perform this action",
       });
     }
-    console.log("ctx.user", ctx.user);
+
     if (ctx.user.role === "ADMIN") {
       // Admin: fetch all tasks
       return prisma.task.findMany({

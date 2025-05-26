@@ -18,24 +18,12 @@ export const trpc = createTRPCNext<AppRouter>({
             if (isBrowser) {
               const auth = getAuth();
               const currentUser = auth.currentUser;
-              console.log(
-                "Current Firebase user:",
-                currentUser ? "Exists" : "Not found"
-              );
-
-              if (currentUser) {
-                try {
-                  const token = await currentUser.getIdToken();
-                  console.log("Token obtained successfully");
-                  return {
-                    Authorization: `Bearer ${token}`,
-                  };
-                } catch (error) {
-                  console.error("Error getting token:", error);
-                  return {};
-                }
+              const token = await currentUser?.getIdToken();
+              if (token) {
+                return {
+                  Authorization: `Bearer ${token}`,
+                };
               }
-              console.log("No current user, no token sent");
               return {};
             }
             return {};
