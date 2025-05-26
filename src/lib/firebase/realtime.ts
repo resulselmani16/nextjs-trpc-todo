@@ -14,37 +14,21 @@ import { app } from "./config";
 const db = getDatabase(app);
 const auth = getAuth();
 
+interface TaskUpdate {
+  status?: "PROGRESS" | "COMPLETED" | "ASSIGNED";
+  createdAt?: number;
+  updatedAt?: number;
+  updatedBy?: string;
+}
+
 export const trackTaskPresence = (taskId: string) => {
-  const userId = auth.currentUser?.uid;
-  if (!userId) return;
-
-  const connectedRef = ref(db, ".info/connected");
-
-  onValue(connectedRef, (snap) => {
-    if (snap.val() === false) return;
-
-    const presenceRef = ref(db, `presence/tasks/${taskId}/${userId}`);
-    set(presenceRef, {
-      userId,
-      email: auth.currentUser?.email,
-      lastSeen: serverTimestamp(),
-    });
-    // Remove presence when user disconnects
-    // Use the onDisconnect method from the database API
-    set(presenceRef, {
-      userId,
-      email: auth.currentUser?.email,
-      lastSeen: serverTimestamp(),
-    }).then(() => {
-      // Now set up what happens on disconnect
-      remove(ref(db, `presence/tasks/${taskId}/${userId}`));
-    });
-  });
+  const presenceRef = ref(db, `presence/${taskId}/${auth.currentUser?.uid}`);
+  return presenceRef;
 };
 
 export const subscribeToTaskUpdates = (
   taskId: string,
-  callback: (data: any) => void
+  callback: (data: TaskUpdate | null) => void
 ) => {
   const taskRef = ref(db, `tasks/${taskId}`);
   return onValue(taskRef, (snapshot) => {
@@ -53,7 +37,10 @@ export const subscribeToTaskUpdates = (
   });
 };
 
-export const updateTaskInRealtime = async (taskId: string, updates: any) => {
+export const updateTaskInRealtime = async (
+  taskId: string,
+  updates: TaskUpdate
+) => {
   const taskRef = ref(db, `tasks/${taskId}`);
   await update(taskRef, {
     ...updates,

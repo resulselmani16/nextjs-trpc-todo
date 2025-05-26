@@ -1,9 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  MdOutlineCheckBoxOutlineBlank,
-  MdDeleteOutline,
-  MdTimelapse,
-} from "react-icons/md";
+import { MdDeleteOutline, MdTimelapse } from "react-icons/md";
 import { IoMdCheckboxOutline } from "react-icons/io";
 import Button from "../Button";
 import {

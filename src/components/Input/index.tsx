@@ -1,54 +1,73 @@
-import { FieldError, UseFormRegister } from "react-hook-form";
+import React from "react";
+import { FieldError, UseFormRegister, Path } from "react-hook-form";
 import classNames from "classnames";
 
-export interface InputProps {
-  id?: string;
-  type?: "text" | "textarea" | "password" | "email";
-  placeholder?: string;
-  register?: UseFormRegister<any>;
+interface BaseInputProps<T extends Record<string, any>> {
+  register?: UseFormRegister<T>;
   error?: FieldError;
-  name: string;
+  name: Path<T>;
   className?: string;
-  value?: string;
 }
 
-const Input = ({
-  id,
-  type = "text",
-  placeholder,
-  register,
-  error,
-  name,
-  className,
-  value,
-}: InputProps) => {
-  const inputClasses = classNames(
-    className,
-    error && "border-red-500 focus:border-red-500 focus:ring-red-500"
-  );
+interface InputProps<T extends Record<string, any>>
+  extends BaseInputProps<T>,
+    Omit<React.InputHTMLAttributes<HTMLInputElement>, "name"> {
+  type?: "text" | "password" | "email";
+}
 
-  if (type === "textarea") {
+interface TextareaProps<T extends Record<string, any>>
+  extends BaseInputProps<T>,
+    Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "name"> {
+  type: "textarea";
+}
+
+type InputComponentProps<T extends Record<string, any>> =
+  | InputProps<T>
+  | TextareaProps<T>;
+
+const Input = React.forwardRef(
+  <T extends Record<string, any>>(
+    {
+      register,
+      error,
+      name,
+      type = "text",
+      className,
+      ...props
+    }: InputComponentProps<T>,
+    ref: React.ForwardedRef<HTMLInputElement>
+  ) => {
+    const inputClasses = classNames(
+      className,
+      error && "border-red-500 focus:border-red-500 focus:ring-red-500"
+    );
+
+    if (type === "textarea") {
+      const textareaProps = props as TextareaProps<T>;
+      return (
+        <textarea
+          {...(register ? register(name) : {})}
+          {...textareaProps}
+          className={inputClasses}
+        />
+      );
+    }
+
+    const inputProps = props as InputProps<T>;
     return (
-      <textarea
-        id={id}
-        placeholder={placeholder}
-        {...register?.(name)}
+      <input
+        type={type}
+        {...(register ? register(name) : {})}
+        {...inputProps}
+        ref={ref}
         className={inputClasses}
-        defaultValue={value}
       />
     );
   }
+) as <T extends Record<string, any>>(
+  props: InputComponentProps<T> & { ref?: React.ForwardedRef<HTMLInputElement> }
+) => React.ReactElement;
 
-  return (
-    <input
-      id={id}
-      type={type}
-      placeholder={placeholder}
-      {...register?.(name)}
-      className={inputClasses}
-      defaultValue={value}
-    />
-  );
-};
+Input.displayName = "Input";
 
 export default Input;

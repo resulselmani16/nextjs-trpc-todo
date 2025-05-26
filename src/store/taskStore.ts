@@ -19,7 +19,7 @@ interface TaskStore {
   subscribeToTask: (taskId: string) => void;
 }
 
-export const useTaskStore = create<TaskStore>((set, get) => ({
+export const useTaskStore = create<TaskStore>((set) => ({
   tasks: [],
   mutationsInitialized: false,
   addTask: async (title: string, description: string, assignedTo: string) => {

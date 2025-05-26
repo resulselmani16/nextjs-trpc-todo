@@ -14,7 +14,7 @@ import TaskFormTpl from "./index.tpl";
 const TaskForm = () => {
   useInitMutations();
   const { isAdmin } = useUserRole();
-  const { data: users, isLoading: usersLoading } = trpc.user.getAll.useQuery();
+  const { data: users } = trpc.user.getAll.useQuery();
   const { mutate: createTask } = trpc.task.create.useMutation();
 
   const {
@@ -37,9 +37,13 @@ const TaskForm = () => {
       createTask({
         title: data.title,
         description: data.description || "",
-        userId: data.assignedTo || "",
+        userId: data.assignedTo?.id || "",
       });
-      await addTask(data.title, data.description || "", data.assignedTo);
+      await addTask(
+        data.title,
+        data.description || "",
+        data.assignedTo?.id || ""
+      );
       toast.success("Task added successfully!");
       router.push("/");
     } catch (err) {

@@ -4,7 +4,7 @@ import { createTRPCNext } from "@trpc/next";
 import { getAuth } from "firebase/auth";
 
 export const trpc = createTRPCNext<AppRouter>({
-  config(opts) {
+  config() {
     const isBrowser = typeof window !== "undefined";
     const url = isBrowser
       ? `${window.location.origin}/api/trpc`

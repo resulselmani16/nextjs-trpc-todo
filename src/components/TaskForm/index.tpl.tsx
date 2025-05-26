@@ -7,7 +7,11 @@ import { User } from "@/types/task/types";
 
 interface TaskFormProps {
   handleSubmit: (e?: React.BaseSyntheticEvent) => void;
-  register?: UseFormRegister<any>;
+  register?: UseFormRegister<{
+    title: string;
+    description?: string;
+    assignedTo?: string;
+  }>;
   errors: FieldErrors;
   isLoading: boolean;
   error?: string;
