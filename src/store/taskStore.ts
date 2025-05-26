@@ -1,6 +1,7 @@
 import { ITask } from "@/types/task/types";
-import { trpc } from "@/utils/trpc";
 import { create } from "zustand";
+import { subscribeToTaskUpdates } from "@/lib/firebase/realtime";
+import { v4 as uuidv4 } from "uuid";
 
 interface TaskStore {
   tasks: ITask[];
@@ -8,66 +9,70 @@ interface TaskStore {
   addTask: (
     title: string,
     description: string,
-    assignedTo?: string
+    assignedTo: string
   ) => Promise<void>;
   updateTask: (id: string, updates: Partial<ITask>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   setTasks: (tasks: ITask[]) => void;
-  initializeMutations: (trpcClient: ReturnType<typeof trpc.useUtils>) => void;
-  fetchTasks: () => Promise<void>;
+  initializeMutations: () => void;
+  fetchTasks: (tasks: ITask[]) => void;
+  subscribeToTask: (taskId: string) => void;
 }
 
-export const useTaskStore = create<TaskStore>((set) => ({
+export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
   mutationsInitialized: false,
-  addTask: async (title: string, description: string, assignedTo?: string) => {
-    try {
-      const { mutate: createTask } = trpc.task.create.useMutation();
-      createTask({ title, description, assignedTo: assignedTo || "" });
-      // We'll use the trpc client directly in the component instead
-      // This is just a placeholder that will be replaced by the actual trpc mutation
-      console.log("Adding task:", { title, description, assignedTo });
-    } catch (error) {
-      throw error;
-    }
+  addTask: async (title: string, description: string, assignedTo: string) => {
+    const newTask: ITask = {
+      id: uuidv4(),
+      title,
+      description,
+      status: "PROGRESS",
+      userId: assignedTo,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    set((state) => ({ tasks: [...state.tasks, newTask] }));
   },
   updateTask: async (id: string, updates: Partial<ITask>) => {
-    try {
-      // Remove the direct tRPC usage since it's causing type errors
-      // The error is because the status field is optional in updates but required in the mutation
-      // We'll use the trpc client directly in the component instead
-      // This is just a placeholder that will be replaced by the actual trpc mutation
-      console.log("Updating task:", { id, updates });
-      set((state) => ({
-        tasks: state.tasks.map((task) =>
-          task.id === id ? { ...task, ...updates } : task
-        ),
-      }));
-    } catch (error) {
-      throw error;
-    }
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === id ? { ...task, ...updates, updatedAt: new Date() } : task
+      ),
+    }));
   },
   deleteTask: async (id: string) => {
-    try {
-      // We'll use the trpc client directly in the component instead
-      // This is just a placeholder that will be replaced by the actual trpc mutation
-      console.log("Deleting task:", { id });
-    } catch (error) {
-      throw error;
-    }
+    set((state) => ({
+      tasks: state.tasks.filter((task) => task.id !== id),
+    }));
   },
   setTasks: (tasks: ITask[]) => set({ tasks }),
-  initializeMutations: (trpcClient) => {
-    // Initialize any tRPC mutations here if needed
+  initializeMutations: () => {
     set({ mutationsInitialized: true });
   },
-  fetchTasks: async () => {
-    try {
-      // We'll use the trpc client directly in the component instead
-      // This is just a placeholder that will be replaced by the actual trpc query
-      console.log("Fetching tasks");
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
+  fetchTasks: (tasks: ITask[]) => {
+    set({ tasks });
+  },
+  subscribeToTask: (taskId: string) => {
+    subscribeToTaskUpdates(taskId, (data) => {
+      if (data) {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === taskId
+              ? {
+                  ...task,
+                  ...data,
+                  createdAt: data.createdAt
+                    ? new Date(data.createdAt)
+                    : task.createdAt,
+                  updatedAt: data.updatedAt
+                    ? new Date(data.updatedAt)
+                    : task.updatedAt,
+                }
+              : task
+          ),
+        }));
+      }
+    });
   },
 }));
