@@ -1,23 +1,25 @@
 import { ITask } from "@/types/task/types";
 import React from "react";
-import { FieldError, FieldErrors, UseFormRegister } from "react-hook-form";
+import {
+  FieldError,
+  FieldErrors,
+  FieldValues,
+  UseFormRegister,
+} from "react-hook-form";
 import Input from "../Input";
 import Button from "../Button";
 import { User } from "@/types/task/types";
 
 interface TaskFormProps {
   handleSubmit: (e?: React.BaseSyntheticEvent) => void;
-  register?: UseFormRegister<{
-    title: string;
-    description?: string;
-    assignedTo?: string;
-  }>;
+  register?: UseFormRegister<any>;
   errors: FieldErrors;
   isLoading: boolean;
   error?: string;
   data?: ITask;
   users?: User[];
   isAdmin?: boolean;
+  isValid: boolean;
 }
 
 const TaskFormTpl = ({
@@ -29,6 +31,7 @@ const TaskFormTpl = ({
   error,
   users,
   isAdmin,
+  isValid,
 }: TaskFormProps) => {
   return (
     <div className="max-w-1/2 w-full md:w-1/2 mx-auto px-4 py-8">
@@ -59,7 +62,7 @@ const TaskFormTpl = ({
                 register={register}
                 error={errors.title as FieldError}
                 name="title"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500
                 focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400
                 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 value={data?.title}
@@ -88,7 +91,6 @@ const TaskFormTpl = ({
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 
                 focus:ring-primary-500 focus:border-primary-500 dark:focus:ring-primary-400 dark:focus:border-primary-400
                 bg-white dark:bg-gray-700 text-gray-900 dark:text-white min-h-[100px]"
-                value={data?.description ?? ""}
               />
               {errors.description && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -132,11 +134,11 @@ const TaskFormTpl = ({
         <div className="flex justify-end">
           <Button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || !isValid}
             className="inline-flex justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white 
             bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600 
             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:focus:ring-offset-gray-800
-            transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:!bg-white disabled:!text-primary-400"
           >
             {isLoading ? "Adding..." : "Add Task"}
           </Button>

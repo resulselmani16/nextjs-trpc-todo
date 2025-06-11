@@ -19,8 +19,8 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       router.push("/"); // Redirect to home page after successful login
-    } catch (error: any) {
-      setError(error.message || "Failed to sign in");
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : "Failed to sign in");
     } finally {
       setLoading(false);
     }
@@ -33,8 +33,10 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
       router.push("/"); // Redirect to home page after successful login
-    } catch (error: any) {
-      setError(error.message || "Failed to sign in with Google");
+    } catch (error: unknown) {
+      setError(
+        error instanceof Error ? error.message : "Failed to sign in with Google"
+      );
     } finally {
       setLoading(false);
     }
@@ -130,7 +132,7 @@ export default function LoginPage() {
 
         <div className="text-center mt-4">
           <p className="text-sm text-gray-600">
-            Don't have an account?{" "}
+            Don&apos;t have an account?
             <Link
               href="/signup"
               className="font-medium text-indigo-600 hover:text-indigo-500"

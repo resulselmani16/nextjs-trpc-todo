@@ -36,8 +36,10 @@ export default function SignupPage() {
         });
       }
       router.push("/"); // Redirect to home page after successful signup
-    } catch (error: any) {
-      setError(error.message || "Failed to create an account");
+    } catch (error: unknown) {
+      setError(
+        error instanceof Error ? error.message : "Failed to create an account"
+      );
     } finally {
       setLoading(false);
     }
@@ -58,8 +60,10 @@ export default function SignupPage() {
         });
       }
       router.push("/"); // Redirect to home page after successful signup
-    } catch (error: any) {
-      setError(error.message || "Failed to sign up with Google");
+    } catch (error: unknown) {
+      setError(
+        error instanceof Error ? error.message : "Failed to sign up with Google"
+      );
     } finally {
       setLoading(false);
     }

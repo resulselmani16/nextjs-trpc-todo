@@ -2,14 +2,7 @@ export interface ITask {
   id?: string;
   title: string;
   description: string | null | undefined;
-  assignedTo?: {
-    id: string;
-    name: string | null;
-    email: string;
-    role: "ADMIN" | "USER";
-    createdAt: Date;
-    updatedAt: Date;
-  };
+  assignedTo: string;
   status?: "PROGRESS" | "COMPLETED" | "ASSIGNED";
   createdAt?: Date;
   updatedAt?: Date;

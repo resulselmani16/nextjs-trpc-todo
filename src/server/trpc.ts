@@ -17,9 +17,19 @@ const isAuthed = t.middleware(async ({ next, ctx }) => {
 
   try {
     const decodedToken = await auth.verifyIdToken(token);
-    const user = await prisma.user.findUnique({
+    let user = await prisma.user.findUnique({
       where: { id: decodedToken.uid },
     });
+
+    if (!user) {
+      // Try to find user by email from Firebase
+      const firebaseUser = await auth.getUser(decodedToken.uid);
+      if (firebaseUser?.email) {
+        user = await prisma.user.findUnique({
+          where: { email: firebaseUser.email },
+        });
+      }
+    }
 
     if (!user) {
       throw new TRPCError({
@@ -37,7 +47,7 @@ const isAuthed = t.middleware(async ({ next, ctx }) => {
   } catch (error) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "Invalid token",
+      message: error instanceof Error ? error.message : "Invalid token",
     });
   }
 });

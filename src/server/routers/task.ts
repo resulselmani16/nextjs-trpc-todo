@@ -42,7 +42,6 @@ export const taskRouter = createTRPCRouter({
           message: "You must be logged in to perform this action",
         });
       }
-
       const tasks = await prisma.task.findMany({
         where: { userId: input },
         include: {
@@ -54,6 +53,45 @@ export const taskRouter = createTRPCRouter({
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You don't have permission to access this task",
+        });
+      }
+
+      return tasks;
+    }),
+
+  getByUserId: protectedProcedure
+    .input(z.string())
+    .query(async ({ ctx, input }: { ctx: TRPCContext; input: string }) => {
+      const payload = input.replace(/\\n/g, "\n").replace(/^"|"$/g, "");
+      if (!ctx.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You must be logged in to perform this action",
+        });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { id: payload },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+
+      const tasks = await prisma.task.findMany({
+        where: { userId: payload },
+        include: {
+          assignedTo: true,
+        },
+      });
+
+      if (ctx.user.role !== "ADMIN" && input !== ctx.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to access these tasks",
         });
       }
 

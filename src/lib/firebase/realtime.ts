@@ -1,17 +1,6 @@
-import {
-  getDatabase,
-  ref,
-  onValue,
-  set,
-  push,
-  remove,
-  update,
-  serverTimestamp,
-} from "firebase/database";
 import { getAuth } from "firebase/auth";
-import { app } from "./config";
+import { getTaskWebSocketClient } from "../websocket/client";
 
-const db = getDatabase(app);
 const auth = getAuth();
 
 interface TaskUpdate {
@@ -22,40 +11,49 @@ interface TaskUpdate {
 }
 
 export const trackTaskPresence = (taskId: string) => {
-  const presenceRef = ref(db, `presence/${taskId}/${auth.currentUser?.uid}`);
-  return presenceRef;
+  const viewer = {
+    id: auth.currentUser?.uid || "",
+    email: auth.currentUser?.email || "",
+  };
+  const wsClient = getTaskWebSocketClient();
+  if (wsClient) {
+    return wsClient.subscribeToPresence(taskId, () => {});
+  }
+  return undefined;
 };
 
 export const subscribeToTaskUpdates = (
   taskId: string,
   callback: (data: TaskUpdate | null) => void
 ) => {
-  const taskRef = ref(db, `tasks/${taskId}`);
-  return onValue(taskRef, (snapshot) => {
-    const data = snapshot.val();
-    callback(data);
-  });
+  const wsClient = getTaskWebSocketClient();
+  if (wsClient) {
+    return wsClient.subscribeToTask(taskId, callback);
+  }
+  return undefined;
 };
 
 export const updateTaskInRealtime = async (
   taskId: string,
   updates: TaskUpdate
 ) => {
-  const taskRef = ref(db, `tasks/${taskId}`);
-  await update(taskRef, {
-    ...updates,
-    updatedAt: serverTimestamp(),
-    updatedBy: auth.currentUser?.uid,
-  });
+  const wsClient = getTaskWebSocketClient();
+  if (wsClient) {
+    wsClient.updateTask(taskId, {
+      ...updates,
+      updatedAt: Date.now(),
+      updatedBy: auth.currentUser?.uid,
+    });
+  }
 };
 
 export const getTaskViewers = (
   taskId: string,
-  callback: (viewers: any[]) => void
+  callback: (viewers: unknown[]) => void
 ) => {
-  const presenceRef = ref(db, `presence/tasks/${taskId}`);
-  return onValue(presenceRef, (snapshot) => {
-    const viewers = snapshot.val() || {};
-    callback(Object.values(viewers));
-  });
+  const wsClient = getTaskWebSocketClient();
+  if (wsClient) {
+    return wsClient.subscribeToPresence(taskId, callback);
+  }
+  return undefined;
 };

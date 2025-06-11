@@ -20,9 +20,10 @@ const TaskForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid, touchedFields },
   } = useForm<ITask>({
     resolver: zodResolver(taskValidationSchema),
+    mode: "onChange",
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -37,13 +38,9 @@ const TaskForm = () => {
       createTask({
         title: data.title,
         description: data.description || "",
-        userId: data.assignedTo?.id || "",
+        userId: data.assignedTo || "",
       });
-      await addTask(
-        data.title,
-        data.description || "",
-        data.assignedTo?.id || ""
-      );
+      await addTask(data.title, data.description || "", data.assignedTo || "");
       toast.success("Task added successfully!");
       router.push("/");
     } catch (err) {
@@ -64,6 +61,7 @@ const TaskForm = () => {
       error={error}
       users={users as User[]}
       isAdmin={isAdmin}
+      isValid={isValid}
     />
   );
 };

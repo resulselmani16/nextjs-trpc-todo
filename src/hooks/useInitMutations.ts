@@ -19,7 +19,7 @@ export function useInitMutations() {
     enabled: mutationsInitialized && isAdmin,
   });
 
-  const { data: userTasks } = trpc.task.getById.useQuery(user?.uid || "", {
+  const { data: userTasks } = trpc.task.getByUserId.useQuery(user?.uid || "", {
     enabled: mutationsInitialized && !isAdmin && !!user?.uid,
   });
 
