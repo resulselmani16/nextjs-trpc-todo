@@ -17,14 +17,7 @@ interface TaskCardProps {
   onCheckClick: () => void;
   onDeleteClick: () => void;
   showDelete?: boolean;
-  assignedTo?: {
-    id: string;
-    name: string | null;
-    email: string;
-    role: "ADMIN" | "USER";
-    createdAt: Date;
-    updatedAt: Date;
-  };
+  assignedTo?: string;
 }
 
 const TaskCard = ({
@@ -47,7 +40,7 @@ const TaskCard = ({
     });
 
     return () => {
-      unsubscribe();
+      if (unsubscribe) unsubscribe();
     };
   }, [id]);
 
@@ -66,7 +59,7 @@ const TaskCard = ({
           <p className="italic">{description}</p>
           {assignedTo && (
             <p className="text-sm text-gray-400 mt-1">
-              Assigned to: {assignedTo.name} - {assignedTo.email}
+              Assigned to: {assignedTo}
             </p>
           )}
         </div>

@@ -74,13 +74,22 @@ class TaskWebSocketClient {
     }
   }
 
-  private handleMessage(data: any) {
+  private handleMessage(data: {
+    type: "update" | "presence";
+    taskId: string;
+    updates?: TaskUpdate;
+    viewers?: TaskViewer[];
+  }) {
     switch (data.type) {
       case "update":
-        this.handleTaskUpdate(data.taskId, data.updates);
+        if (data.updates) {
+          this.handleTaskUpdate(data.taskId, data.updates);
+        }
         break;
       case "presence":
-        this.handlePresenceUpdate(data.taskId, data.viewers);
+        if (data.viewers) {
+          this.handlePresenceUpdate(data.taskId, data.viewers);
+        }
         break;
     }
   }

@@ -11,10 +11,6 @@ interface TaskUpdate {
 }
 
 export const trackTaskPresence = (taskId: string) => {
-  const viewer = {
-    id: auth.currentUser?.uid || "",
-    email: auth.currentUser?.email || "",
-  };
   const wsClient = getTaskWebSocketClient();
   if (wsClient) {
     return wsClient.subscribeToPresence(taskId, () => {});

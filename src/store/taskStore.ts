@@ -31,6 +31,7 @@ export const useTaskStore = create<TaskStore>((set) => ({
       userId: assignedTo,
       createdAt: new Date(),
       updatedAt: new Date(),
+      assignedTo
     };
     set((state) => ({ tasks: [...state.tasks, newTask] }));
   },

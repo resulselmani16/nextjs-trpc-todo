@@ -1,18 +1,13 @@
 import { ITask } from "@/types/task/types";
 import React from "react";
-import {
-  FieldError,
-  FieldErrors,
-  FieldValues,
-  UseFormRegister,
-} from "react-hook-form";
+import { FieldError, FieldErrors, UseFormRegister } from "react-hook-form";
 import Input from "../Input";
 import Button from "../Button";
 import { User } from "@/types/task/types";
 
 interface TaskFormProps {
   handleSubmit: (e?: React.BaseSyntheticEvent) => void;
-  register?: UseFormRegister<any>;
+  register?: UseFormRegister<ITask>;
   errors: FieldErrors;
   isLoading: boolean;
   error?: string;

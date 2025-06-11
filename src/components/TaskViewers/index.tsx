@@ -11,11 +11,11 @@ const TaskViewers: React.FC<TaskViewersProps> = ({ taskId }) => {
 
   useEffect(() => {
     const unsubscribe = getTaskViewers(taskId, (viewers) => {
-      setViewers(viewers);
+      setViewers(viewers as User[]);
     });
 
     return () => {
-      unsubscribe();
+      if (typeof unsubscribe === "function") unsubscribe();
     };
   }, [taskId]);
 

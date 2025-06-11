@@ -1,6 +1,8 @@
 import { WebSocketServer, WebSocket } from "ws";
-import { Server } from "http";
+// import { Server } from "http";
 import { EventEmitter } from "events";
+import { IncomingMessage } from "http";
+import { Socket } from "net";
 
 interface TaskUpdate {
   status?: "PROGRESS" | "COMPLETED" | "ASSIGNED";
@@ -18,6 +20,13 @@ interface ExtendedWebSocket extends WebSocket {
   id?: string;
 }
 
+interface WebSocketMessage {
+  type: "subscribe" | "unsubscribe" | "update" | "presence";
+  taskId: string;
+  updates?: TaskUpdate;
+  viewer?: TaskViewer;
+}
+
 class TaskWebSocketServer {
   private wss: WebSocketServer;
   private taskSubscribers: Map<string, Set<ExtendedWebSocket>>;
@@ -25,7 +34,7 @@ class TaskWebSocketServer {
   private viewerPresence: Map<string, Map<string, TaskViewer>>;
   private eventEmitter: EventEmitter;
 
-  constructor(server: Server) {
+  constructor() {
     this.wss = new WebSocketServer({ noServer: true });
     this.taskSubscribers = new Map();
     this.presenceSubscribers = new Map();
@@ -37,7 +46,7 @@ class TaskWebSocketServer {
 
       ws.on("message", (message) => {
         try {
-          const data = JSON.parse(message.toString());
+          const data = JSON.parse(message.toString()) as WebSocketMessage;
           this.handleMessage(ws, data);
         } catch (error) {
           console.error("Error handling WebSocket message:", error);
@@ -50,7 +59,7 @@ class TaskWebSocketServer {
     });
   }
 
-  private handleMessage(ws: ExtendedWebSocket, data: any) {
+  private handleMessage(ws: ExtendedWebSocket, data: WebSocketMessage) {
     switch (data.type) {
       case "subscribe":
         this.handleSubscribe(ws, data.taskId);
@@ -59,10 +68,14 @@ class TaskWebSocketServer {
         this.handleUnsubscribe(ws, data.taskId);
         break;
       case "update":
-        this.handleUpdate(data.taskId, data.updates);
+        if (data.updates) {
+          this.handleUpdate(data.taskId, data.updates);
+        }
         break;
       case "presence":
-        this.handlePresence(ws, data.taskId, data.viewer);
+        if (data.viewer) {
+          this.handlePresence(ws, data.taskId, data.viewer);
+        }
         break;
     }
   }
@@ -115,12 +128,12 @@ class TaskWebSocketServer {
 
   private handleDisconnect(ws: ExtendedWebSocket) {
     // Remove from all task subscribers
-    this.taskSubscribers.forEach((subscribers, taskId) => {
+    this.taskSubscribers.forEach((subscribers) => {
       subscribers.delete(ws);
     });
 
     // Remove from all presence subscribers
-    this.presenceSubscribers.forEach((subscribers, taskId) => {
+    this.presenceSubscribers.forEach((subscribers) => {
       subscribers.delete(ws);
     });
 
@@ -158,7 +171,7 @@ class TaskWebSocketServer {
     this.handleUpdate(taskId, updates);
   }
 
-  public handleUpgrade(request: any, socket: any, head: any) {
+  public handleUpgrade(request: IncomingMessage, socket: Socket, head: Buffer) {
     this.wss.handleUpgrade(request, socket, head, (ws) => {
       this.wss.emit("connection", ws, request);
     });

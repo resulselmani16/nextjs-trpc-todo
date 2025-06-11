@@ -13,10 +13,10 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   });
 
-  const taskWebSocketServer = new TaskWebSocketServer(server);
+  const taskWebSocketServer = new TaskWebSocketServer();
   server.on("upgrade", (req, socket, head) => {
     if (req.url === "/ws") {
-      taskWebSocketServer.handleUpgrade(req, socket, head);
+      taskWebSocketServer.handleUpgrade(req, socket as any, head);
     }
   });
 

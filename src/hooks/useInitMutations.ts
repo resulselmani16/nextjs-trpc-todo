@@ -36,13 +36,10 @@ export function useInitMutations() {
           ...task,
           createdAt: new Date(task.createdAt),
           updatedAt: new Date(task.updatedAt),
-          assignedTo: task.assignedTo
-            ? {
-                ...task.assignedTo,
-                createdAt: new Date(task.assignedTo.createdAt),
-                updatedAt: new Date(task.assignedTo.updatedAt),
-              }
-            : undefined,
+          assignedTo:
+            typeof task.assignedTo === "object" && task.assignedTo !== null
+              ? task.assignedTo.id
+              : task.assignedTo || "",
         })) || [];
       fetchTasks(tasks);
     }

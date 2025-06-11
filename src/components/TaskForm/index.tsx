@@ -20,7 +20,7 @@ const TaskForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid, touchedFields },
+    formState: { errors, isValid },
   } = useForm<ITask>({
     resolver: zodResolver(taskValidationSchema),
     mode: "onChange",

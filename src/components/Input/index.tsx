@@ -1,16 +1,12 @@
 import classNames from "classnames";
 import React from "react";
-import {
-  FieldError,
-  FieldValues,
-  Path,
-  UseFormRegister,
-} from "react-hook-form";
+import { FieldError, UseFormRegister } from "react-hook-form";
+import { ITask } from "@/types/task/types";
 
 interface BaseInputProps {
-  register?: UseFormRegister<FieldValues>;
+  register?: UseFormRegister<ITask>;
   error?: FieldError;
-  name: string;
+  name: keyof ITask;
   className?: string;
 }
 
